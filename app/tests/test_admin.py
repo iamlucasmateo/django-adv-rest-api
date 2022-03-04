@@ -6,7 +6,7 @@ from django.urls import reverse
 class AdminSiteTests(TestCase):
     def setUp(self):
         self.client = Client()
-        self.admin_user = get_user_model().objects.create_user(
+        self.admin_user = get_user_model().objects.create_superuser(
             email='admin@admin.com',
             password='1234'
         )
@@ -25,3 +25,16 @@ class AdminSiteTests(TestCase):
 
         self.assertContains(res, self.user.name)
         self.assertContains(res, self.user.email)
+    
+    def test_user_change_page(self):
+        """Test that user edir page works"""
+        # the args parameter adds items to the URL
+        url = reverse('admin:core_user_change', args=[self.user.id])
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, 200)
+    
+    def test_create_user_page(self):
+        """Test that the create user page exists"""
+        url = reverse('admin:core_user_add')
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, 200)
