@@ -3,6 +3,7 @@ from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager, PermissionsMixin
 )
 
+
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         """Creates and saves new user"""
@@ -14,7 +15,7 @@ class UserManager(BaseUserManager):
         # parameter using=self._db, for multiple databases support
         user.save(using=self._db)
         return user
-    
+
     def create_superuser(self, email, password):
         """Creates and saves superuser"""
         user = self.create_user(email, password)
@@ -22,6 +23,7 @@ class UserManager(BaseUserManager):
         user.is_superuser = True
         user.save(using=self._db)
         return user
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     """Custom User model, using email instead of username"""

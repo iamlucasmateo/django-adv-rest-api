@@ -16,7 +16,7 @@ class AdminSiteTests(TestCase):
             password='1234',
             name='Test user full name'
         )
-    
+
     def test_users_listed(self):
         """Test that users are listed in user page"""
         # get url for admin, get response, see if it contains indicated user
@@ -25,14 +25,14 @@ class AdminSiteTests(TestCase):
 
         self.assertContains(res, self.user.name)
         self.assertContains(res, self.user.email)
-    
+
     def test_user_change_page(self):
         """Test that user edir page works"""
         # the args parameter adds items to the URL
         url = reverse('admin:core_user_change', args=[self.user.id])
         res = self.client.get(url)
         self.assertEqual(res.status_code, 200)
-    
+
     def test_create_user_page(self):
         """Test that the create user page exists"""
         url = reverse('admin:core_user_add')

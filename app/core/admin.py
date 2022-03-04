@@ -4,11 +4,12 @@ from django.utils.translation import gettext as _
 
 from core import models
 
+
 # Register your models here.
 class UserAdmin(BaseUserAdmin):
     ordering = ['id']
     list_display = ['email', 'name']
-    # Changing Admin to support custom User model 
+    # Changing Admin to support custom User model
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         (_('Personal Info'), {'fields': ('name',)}),
@@ -24,5 +25,6 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('email', 'password1', 'password2')
         }),
     )
+
 
 admin.site.register(models.User, UserAdmin)
