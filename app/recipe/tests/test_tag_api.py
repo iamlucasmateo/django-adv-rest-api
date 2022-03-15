@@ -59,7 +59,7 @@ class PrivateTagsApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['name'], str(tag))
-    
+
     def test_create_tag_successful(self):
         """Test creating a new tag"""
         payload = {'name': 'Test tag'}
@@ -69,7 +69,7 @@ class PrivateTagsApiTests(TestCase):
             name=payload['name']
         ).exists()
         self.assertTrue(exists)
-    
+
     def test_tag_invalid(self):
         """Test creating a new tag with invalid payload"""
         payload = {'name': ''}
