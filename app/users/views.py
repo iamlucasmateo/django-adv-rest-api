@@ -3,6 +3,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
 
 from users.serializers import UserSerializer, AuthTokenSerializer
+from core.models import User
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -26,3 +27,8 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         """Retriever the authenticated user"""
         return self.request.user
+
+
+class ListUsers(generics.ListAPIView):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()

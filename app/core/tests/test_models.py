@@ -5,6 +5,12 @@ from django.test import TestCase
 # and your code will not break
 from django.contrib.auth import get_user_model
 
+from core import models
+
+
+def sample_user(email='test@test.com', password='123456'):
+    return get_user_model().objects.create_user(email, password)
+
 
 class ModelTest(TestCase):
     def test_create_user_with_email_successful(self):
@@ -40,3 +46,10 @@ class ModelTest(TestCase):
         )
         self.assertEqual(user.email, 'admin@admin.com')
         self.assertTrue(user.check_password('1234'))
+
+    def test_tag_str(self):
+        tag = models.Tag.objects.create(
+            user=sample_user(),
+            name='Vegan'
+        )
+        self.assertEqual('Vegan', tag.name)
