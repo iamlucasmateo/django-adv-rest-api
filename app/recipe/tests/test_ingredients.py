@@ -59,17 +59,34 @@ class PrivateIngredientsAPITest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['name'], ingredient.name)
-    
+
     def test_create_ingredient(self):
+        """Test create ingredient, generic URL"""
+        res = self.client.post(INGREDIENTS_URL, {'name': 'Tomato'})
+        exists = Ingredient.objects.filter(
+            user=self.user,
+            name='Tomato'
+        ).exists()
+        self.assertTrue(exists)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_create_ingredient_invalid_input(self):
+        """Test create ingredient invalid input, generic URL"""
+        res = self.client.post(INGREDIENTS_URL, {'name': ''})
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_ingredient_adhoc(self):
+        """Test create ingredient, adhoc URL"""
         res = self.client.post(CREATE_INGREDIENTS_URL, {'name': 'Lettuce'})
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        # this part is better done using the exists method
         query_ingredient = Ingredient.objects.filter(name='Lettuce')[0]
         query_name = query_ingredient.name
-        query_user_id = query_ingredient.user_id 
+        query_user_id = query_ingredient.user_id
         self.assertEqual(query_name, 'Lettuce')
         self.assertEqual(query_user_id, self.user.id)
 
-    def test_create_ingredient_invalid_input(self):
+    def test_create_ingredient_invalid_input_adhoc(self):
+        """Test create ingredient, adhoc URL"""
         res = self.client.post(CREATE_INGREDIENTS_URL, {'name': ''})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-

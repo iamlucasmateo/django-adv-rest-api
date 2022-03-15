@@ -12,7 +12,7 @@ app_name = 'recipe'
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('ingredient-create', 
+    path('ingredient-create',
          views.IngredientCreateView.as_view(),
          name='ingredient-create')
 ]

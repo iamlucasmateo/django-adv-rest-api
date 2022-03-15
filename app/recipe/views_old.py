@@ -9,37 +9,54 @@ from recipe.serializers import TagSerializer, IngredientSerializer
 # Create your views here.
 
 
-class BaseRecipeAttrViewSet(viewsets.GenericViewSet,
-                            mixins.ListModelMixin,
-                            mixins.CreateModelMixin):
-    """Base view set for user owned recipe attributes"""
+class TagViewSet(viewsets.GenericViewSet,
+                 mixins.ListModelMixin,
+                 mixins.CreateModelMixin):
+    """Manage tags in the database"""
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
-
-    def get_queryset(self):
-        """Return attrs for authenticated users"""
-        return self.queryset.filter(user=self.request.user).order_by('-name')
-
-    def perform_create(self, serializer):
-        """Saves object"""
-        serializer.save(user=self.request.user)
-
-
-class TagViewSet(BaseRecipeAttrViewSet):
-    """Manage tags"""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
+    def get_queryset(self):
+        """Return tags for authenticated user only"""
+        return self.queryset.filter(user=self.request.user).order_by('-name')
 
-class IngredientViewSet(BaseRecipeAttrViewSet):
+    def perform_create(self, serializer):
+        """Create a new tag
+
+        These hooks (perform_create, perform_update, perform_destroy) are
+        particularly useful for setting attributes that are implicit
+        in the request, but are not part of the request data.
+        For instance, you might set an attribute on the object
+        based on the request user, or based on a URL keyword argument.
+        Also used for: doing something after object creation (e.g., sending
+        an email) or raising Validation Errors
+        """
+        serializer.save(user=self.request.user)
+
+
+class IngredientViewSet(viewsets.GenericViewSet,
+                        mixins.ListModelMixin,
+                        mixins.CreateModelMixin):
     """Manage ingredients"""
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+
+    def get_queryset(self):
+        """Return ingredients for current user"""
+        return self.queryset.filter(user=self.request.user).order_by('-name')
+
+    # this would be another way to generate a CreateView (same endpoint)
+    def perform_create(self, serializer):
+        """Creates new ingredient"""
+        serializer.save(user=self.request.user)
 
 
 # ad hoc view (just for fun)
 class IngredientCreateView(generics.CreateAPIView):
-    """Creating ingredients, adhoc view"""
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     serializer_class = IngredientSerializer
