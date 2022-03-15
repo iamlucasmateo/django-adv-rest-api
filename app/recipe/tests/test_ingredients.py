@@ -7,8 +7,9 @@ from rest_framework import status
 from core.models import Ingredient
 from recipe.serializers import IngredientSerializer
 
-
+# the syntax of reverse is 'app:endpoint-name'
 INGREDIENTS_URL = reverse('recipe:ingredient-list')
+CREATE_INGREDIENTS_URL = reverse('recipe:ingredient-create')
 
 
 class PublicIngredientAPITest(TestCase):
@@ -58,3 +59,17 @@ class PrivateIngredientsAPITest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['name'], ingredient.name)
+    
+    def test_create_ingredient(self):
+        res = self.client.post(CREATE_INGREDIENTS_URL, {'name': 'Lettuce'})
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        query_ingredient = Ingredient.objects.filter(name='Lettuce')[0]
+        query_name = query_ingredient.name
+        query_user_id = query_ingredient.user_id 
+        self.assertEqual(query_name, 'Lettuce')
+        self.assertEqual(query_user_id, self.user.id)
+
+    def test_create_ingredient_invalid_input(self):
+        res = self.client.post(CREATE_INGREDIENTS_URL, {'name': ''})
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+

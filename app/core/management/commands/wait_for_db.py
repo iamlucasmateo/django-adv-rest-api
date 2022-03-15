@@ -10,7 +10,7 @@ class Command(BaseCommand):
     """Django command to pause execution until DB is available"""
     def handle(self, *args, **kwargs):
         self.stdout.write('Waiting for database...')
-        time.sleep(1)
+        time.sleep(3)
         db_conn = None
         while not db_conn:
             try:
