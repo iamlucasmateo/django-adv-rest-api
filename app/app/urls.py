@@ -15,10 +15,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     # this paths are completed in the included app (users), urls.py file
     path('api/users/', include('users.urls')),
-    path('api/recipe/', include('recipe.urls'))
-]
+    path('api/recipe/', include('recipe.urls')),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# by default, static files are available through url in development server
+# but media folders/files are not; this last line adds them
