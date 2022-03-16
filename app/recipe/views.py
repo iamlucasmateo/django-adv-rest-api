@@ -57,6 +57,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeDetailSerializer
         return super().get_serializer_class()
     
+    # para post, patch y put
     def perform_create(self, serializer):
         """Create a new recipe"""
         return serializer.save(user=self.request.user)
