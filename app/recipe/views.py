@@ -4,9 +4,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 
-from core.models import Tag, Ingredient
-from recipe.serializers import TagSerializer, IngredientSerializer
-# Create your views here.
+from core.models import Tag, Ingredient, Recipe
+from recipe.serializers import (
+    RecipeDetailSerializer, TagSerializer, IngredientSerializer, RecipeSerializer
+)
 
 
 class BaseRecipeAttrViewSet(viewsets.GenericViewSet,
@@ -37,34 +38,22 @@ class IngredientViewSet(BaseRecipeAttrViewSet):
     serializer_class = IngredientSerializer
 
 
-# ad hoc view (just for fun)
-class IngredientCreateView(generics.CreateAPIView):
-    """Creating ingredients, adhoc view"""
-    authentication_classes = (TokenAuthentication,)
+class RecipeViewSet(viewsets.ModelViewSet):
+    """Manage recipes in the database"""
+    serializer_class = RecipeSerializer
+    queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticated,)
-    serializer_class = IngredientSerializer
-    # queryset = Ingredient.objects.all()
+    authentication_classes = (TokenAuthentication,)
 
-    @staticmethod
-    def validate_name(name):
-        if len(name) == 0:
-            raise ValidationError('Invalid name for ingredient')
+    def get_queryset(self):
+        """Retrieve recipes for authenticated user"""
+        return self.queryset.filter(user=self.request.user)
+    
+    # use a different serializer for different actions
+    def get_serializer_class(self):
+        """Return appropiate serializer class"""
+        # 'retrieve' action for details
+        if self.action == 'retrieve':
+            return RecipeDetailSerializer
+        return super().get_serializer_class()
 
-    def post(self, request):
-        """Create a new ingredient"""
-        self.validate_name(request.data['name'])
-        save_data = dict({
-            'user': request.user,
-            'name': request.data['name']
-        })
-        try:
-            Ingredient(**save_data).save()
-            return Response({
-                'message': 'Ingredient created'
-            }, status=status.HTTP_201_CREATED)
-        except Exception:
-            return Response({
-                'message': f'Incorrect request body'
-            },
-                status=status.HTTP_400_BAD_REQUEST
-            )
