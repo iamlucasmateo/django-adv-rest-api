@@ -1,12 +1,13 @@
-from rest_framework import viewsets, mixins, generics, status
+from rest_framework.decorators import action
+from rest_framework import viewsets, mixins, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
 
 from core.models import Tag, Ingredient, Recipe
 from recipe.serializers import (
-    RecipeDetailSerializer, TagSerializer, IngredientSerializer, RecipeSerializer
+    RecipeDetailSerializer, TagSerializer, IngredientSerializer, 
+    RecipeSerializer, RecipeImageSerializer
 )
 
 
@@ -55,10 +56,36 @@ class RecipeViewSet(viewsets.ModelViewSet):
         # 'retrieve' action for details
         if self.action == 'retrieve':
             return RecipeDetailSerializer
+        # see this action below
+        elif self.action == 'upload_image':
+            return RecipeImageSerializer
         return super().get_serializer_class()
     
     # para post, patch y put
     def perform_create(self, serializer):
         """Create a new recipe"""
         return serializer.save(user=self.request.user)
+    
+    # using the decorator, I can develop an ad hoc endpoint
+    # detail=True is for using the URL with id
+    @action(methods=['POST'], detail=True, url_path='upload-image')
+    def upload_image(self, request, pk=None):
+        """Upload an image to a recipe"""
+        # retrieving object (based on the id)
+        recipe = self.get_object()
+        # get_serializer_class function contemplates this case
+        serializer = self.get_serializer(
+            recipe,
+            data=request.data
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
 

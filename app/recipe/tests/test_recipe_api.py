@@ -1,3 +1,8 @@
+import os
+# this module creates temporary files (standard library)
+import tempfile
+
+from PIL import Image
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -35,6 +40,10 @@ def sample_recipe(user, **params):
     default.update(params)
 
     return Recipe.objects.create(user=user, **default)
+
+def image_upload_url(recipe_id):
+    """Return URL for recipe image upload"""
+    return reverse('recipe:recipe-upload-image', args=[recipe_id])
 
 
 class PublicRecipeAPITest(TestCase):
@@ -196,4 +205,40 @@ class PrivateAPITest(TestCase):
         self.assertEqual(len(recipe.tags.all()), 0)
 
 
+class RecipeImageUploadTest(TestCase):
+    """Test"""
 
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            'test@test.com',
+            'testpass'
+        )
+        self.client.force_authenticate(self.user)
+        self.recipe = sample_recipe(user=self.user)
+
+    def tearDown(self):
+        # make sure we delete files if they were added
+        self.recipe.image.delete()
+    
+    def test_upload_image_to_recipe(self):
+        """Test uploading an image to recipe"""
+        url = image_upload_url(self.recipe.id)
+        print('test-url', url)
+        # when the context manager is exited, the file will be deleted
+        with tempfile.NamedTemporaryFile(suffix='.jpg') as ntf:
+            img = Image.new('RGB', (10, 10))
+            img.save(ntf, format='JPEG')
+            # this 'reloads' the file for reading (saving 'te deja al final del file')
+            ntf.seek(0)
+            res = self.client.post(url, {'image': ntf}, format='multipart')
+            self.recipe.refresh_from_db()
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertIn('image', res.data)
+            self.assertTrue(os.path.exists(self.recipe.image.path))
+    
+    def test_upload_image_fail(self):
+        """Test uploading invalid image"""
+        url = image_upload_url(self.recipe.id)
+        res = self.client.post(url, {'image': 'notimage'}, format='multipart')
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
